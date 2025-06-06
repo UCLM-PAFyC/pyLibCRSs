@@ -1,0 +1,12 @@
+**/debug
+**/release
+**/__pycache__
+**./idea
+
+**/*.svn-base
+**/.svn
+
+settings.ini
+
+!.gitignore
+!.htaccess
