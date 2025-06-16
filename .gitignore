@@ -2,6 +2,7 @@
 **/release
 **/__pycache__
 **./idea
+**/.__pycache__/
 
 **/*.svn-base
 **/.svn
