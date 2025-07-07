@@ -1,8 +1,9 @@
 **/debug
 **/release
 **/__pycache__
-**./idea
+**/.idea/
 **/.__pycache__/
+**/tmp
 
 **/*.svn-base
 **/.svn
