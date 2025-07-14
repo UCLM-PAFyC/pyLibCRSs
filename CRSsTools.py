@@ -339,8 +339,8 @@ class CRSsTools:
                 return
 
         # Geo2D
-        crs_info_list = database.query_crs_info(auth_name='EPSG',
-                                                pj_types="GEOGRAPHIC_2D_CRS")
+        crs_info_list = database.query_crs_info(auth_name = 'EPSG',
+                                                pj_types = "GEOGRAPHIC_2D_CRS")
         crs_list = []
         for info in crs_info_list:
             crs_id = "EPSG:" + info[1]
@@ -384,8 +384,8 @@ class CRSsTools:
         self.data["CRSs_geo2d_ids"] = sorted(crs_list)
 
         # # Geo3D
-        crs_info_list = database.query_crs_info(auth_name='EPSG',
-                                                pj_types="GEOGRAPHIC_3D_CRS")
+        crs_info_list = database.query_crs_info(auth_name = 'EPSG',
+                                                pj_types = "GEOGRAPHIC_3D_CRS")
         crs_list = []
         for info in crs_info_list:
             crs_id = "EPSG:" + info[1]
@@ -429,8 +429,8 @@ class CRSsTools:
         self.data["CRSs_geo3d_ids"] = sorted(crs_list)
 
         # ECEF
-        crs_info_list = database.query_crs_info(auth_name='EPSG',
-                                                pj_types="GEOCENTRIC_CRS")
+        crs_info_list = database.query_crs_info(auth_name = 'EPSG',
+                                                pj_types = "GEOCENTRIC_CRS")
         crs_list = []
         for info in crs_info_list:
             crs_id = "EPSG:" + info[1]
@@ -474,8 +474,8 @@ class CRSsTools:
         self.data["CRSs_ecef_ids"] = sorted(crs_list)
 
         # Projected
-        crs_info_list = database.query_crs_info(auth_name='EPSG',
-                                                pj_types="PROJECTED_CRS")
+        crs_info_list = database.query_crs_info(auth_name = 'EPSG',
+                                                pj_types = "PROJECTED_CRS")
         crs_list = []
         for info in crs_info_list:
             crs_id = "EPSG:" + info[1]
@@ -519,8 +519,8 @@ class CRSsTools:
         self.data["CRSs_projected_ids"] = sorted(crs_list)
 
         # Vertical
-        crs_info_list = database.query_crs_info(auth_name='EPSG',
-                                                pj_types="VERTICAL_CRS")
+        crs_info_list = database.query_crs_info(auth_name = 'EPSG',
+                                                pj_types = "VERTICAL_CRS")
         crs_list = []
         for info in crs_info_list:
             crs_id = "EPSG:" + info[1]
@@ -547,8 +547,8 @@ class CRSsTools:
         # Vertical from Compound
         # crs_info_list = database.query_crs_info(auth_name='EPSG',
         #                                         pj_types="VERTICAL_CRS")
-        crs_info_list = database.query_crs_info(auth_name='EPSG',
-                                                pj_types="COMPOUND_CRS")
+        crs_info_list = database.query_crs_info(auth_name = 'EPSG',
+                                                pj_types = "COMPOUND_CRS")
         crs_list = []
         for info in crs_info_list:
             crs_id = "EPSG:" + info[1]
