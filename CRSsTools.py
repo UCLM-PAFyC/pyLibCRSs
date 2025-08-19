@@ -1,3 +1,6 @@
+# authors:
+# David Hernandez Lopez, david.hernandez@uclm.es
+
 # https://pyproj4.github.io/pyproj/stable/examples.html
 # https://pyproj4.github.io/pyproj/stable/advanced_examples.html
 import os
@@ -77,6 +80,43 @@ class CRSsTools:
     #     # crs_list = ["EPSG:" + info[1] for info in crs_info_list]
     #     # self.CRSs_compound_ids = sorted(crs_list)
     #     # return self.CRSs_compound_ids
+
+    def get_compound_epgs_codes_from_json(self,
+                                          crs_as_dict):
+        str_error = ''
+        epsg_code = cd.NO_EPSG_CODE
+        vertical_epsg_code = cd.NO_EPSG_CODE
+        if not isinstance(crs_as_dict, dict):
+            str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+            str_error += ("\nArgument must be a dict and is: {}".format(str(type(crs_as_dict))))
+            return str_error, epsg_code, vertical_epsg_code
+        if not cd.CRS_AS_JSON_SCHEMA_TAG in crs_as_dict:
+            str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+            str_error += ("\nNo: {} in json string:\n{}".format(cd.CRS_AS_JSON_SCHEMA_TAG, json_string))
+            return str_error, epsg_code, vertical_epsg_code
+        schema =  crs_as_dict[cd.CRS_AS_JSON_SCHEMA_TAG]
+        return str_error, epsg_code, vertical_epsg_code
+
+    def get_compound_epgs_codes_from_wkt(self,
+                                         wkt):
+        str_error = ''
+        epsg_code = cd.NO_EPSG_CODE
+        vertical_epsg_code = cd.NO_EPSG_CODE
+        if not isinstance(wkt, str):
+            str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+            str_error += ("\nWKT must be a string an is: {}".format(str(type(wkt))))
+            return str_error, epsg_code, vertical_epsg_code
+        wkt = wkt.strip()
+        if not wkt.startswith(cd.CRSTOOLS_COMPOUNT_WKT_TAG):
+            str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+            str_error += ("\nWKT must be start with: {}\nand is:\n{}".format(cd.CRSTOOLS_COMPOUNT_WKT_TAG), wkt)
+            return str_error, epsg_code, vertical_epsg_code
+        if not wkt.startswith(cd.CRSTOOLS_COMPOUNT_WKT_TAG):
+            str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+            str_error += ("\nWKT must be start with: {}\nand is:\n{}".format(cd.CRSTOOLS_COMPOUNT_WKT_TAG), wkt)
+            return str_error, epsg_code, vertical_epsg_code
+
+        return str_error, epsg_code, vertical_epsg_code
 
     def get_crs_ecef_ids(self):
         return self.data["CRSs_ecef_ids"]

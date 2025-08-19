@@ -1,0 +1,37 @@
+# authors:
+# David Hernandez Lopez, david.hernandez@uclm.es
+
+import os
+import sys
+import math
+import json
+
+current_path = os.path.dirname(__file__)
+sys.path.append(os.path.join(current_path, '..'))
+
+from .CRSsTools import CRSsTools
+from . import CRSsDefines as cd
+
+from pyLibGDAL.Raster import Raster
+
+class Geoid:
+    def __init__(self,
+                 precision = cd.GEOID_FULL_PRECISION_CODE):
+        self.precision = precision
+        self.crs_tools = CRSsTools()
+        self.raster = None
+
+    def set_from_raster_file(self,
+                             file_path):
+        str_error = ''
+        if not isinstance(file_path, str):
+            str_error = ('File path must be a string and is a: {}'.format(str(type(file_path))))
+            return str_error
+        self.raster = None
+        self.raster = Raster(self.precision)
+        load_data = True
+        str_error = self.raster.set_from_file(file_path, load_data)
+        if str_error:
+            str_error = ("Setting Geoid from file:\n{}\nError:\n{}".format(file_path, str_error))
+            return str_error
+        return str_error
