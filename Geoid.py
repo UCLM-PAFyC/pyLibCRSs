@@ -29,9 +29,9 @@ class Geoid:
             return str_error
         self.raster = None
         self.raster = Raster(self.precision)
-        load_data = True
-        str_error = self.raster.set_from_file(file_path, load_data)
+        str_error = self.raster.set_from_file(file_path,)
         if str_error:
             str_error = ("Setting Geoid from file:\n{}\nError:\n{}".format(file_path, str_error))
             return str_error
+        str_error = self.raster.load(True, None) # fully, bands
         return str_error

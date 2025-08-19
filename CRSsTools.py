@@ -81,21 +81,83 @@ class CRSsTools:
     #     # self.CRSs_compound_ids = sorted(crs_list)
     #     # return self.CRSs_compound_ids
 
-    def get_compound_epgs_codes_from_json(self,
-                                          crs_as_dict):
+    def get_compound_crs_from_json(self,
+                                   crs_as_dict):
         str_error = ''
         epsg_code = cd.NO_EPSG_CODE
         vertical_epsg_code = cd.NO_EPSG_CODE
+        crs_id = ''
         if not isinstance(crs_as_dict, dict):
             str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
             str_error += ("\nArgument must be a dict and is: {}".format(str(type(crs_as_dict))))
             return str_error, epsg_code, vertical_epsg_code
-        if not cd.CRS_AS_JSON_SCHEMA_TAG in crs_as_dict:
+        if not cd.GDAL_CRS_AS_JSON_SCHEMA_TAG in crs_as_dict:
             str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
-            str_error += ("\nNo: {} in json string:\n{}".format(cd.CRS_AS_JSON_SCHEMA_TAG, json_string))
+            str_error += ("\nNo: {} in json:\n{}".format(cd.GDAL_CRS_AS_JSON_SCHEMA_TAG, crs_as_dict))
             return str_error, epsg_code, vertical_epsg_code
-        schema =  crs_as_dict[cd.CRS_AS_JSON_SCHEMA_TAG]
-        return str_error, epsg_code, vertical_epsg_code
+        schema =  crs_as_dict[cd.GDAL_CRS_AS_JSON_SCHEMA_TAG]
+        if not cd.GDAL_CRS_AS_JSON_COMPONENTS_TAG in crs_as_dict:
+            str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+            str_error += ("\nNo: {} in json:\n{}".format(cd.GDAL_CRS_AS_JSON_COMPONENTS_TAG, crs_as_dict))
+            return str_error, epsg_code, vertical_epsg_code
+        crs_components = crs_as_dict[cd.GDAL_CRS_AS_JSON_COMPONENTS_TAG]
+        if not isinstance(crs_components, list):
+            str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+            str_error += ("\nCRSs components must be a list in json:\n{}".format(crs_as_dict))
+            return str_error, epsg_code, vertical_epsg_code
+        if len(crs_components) != 2:
+            str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+            str_error += ("\nCRSs components must be a list of two element in json:\n{}".format(crs_as_dict))
+            return str_error, epsg_code, vertical_epsg_code
+        for i in range(len(crs_components)):
+            crs_component = crs_components[i]
+            if not isinstance(crs_component, dict):
+                str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+                str_error += ("\nCRS component: {}\n must be a dict in json:\n{}".
+                              format(str(i), crs_as_dict))
+                return str_error, epsg_code, vertical_epsg_code
+            if not cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_TYPE_TAG in crs_component:
+                str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+                str_error += ("\nIn CRS component: {}\nno: {} in json:\n{}".
+                              format(str(i), cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_TYPE_TAG, crs_as_dict))
+                return str_error, epsg_code, vertical_epsg_code
+            crs_component_type = crs_component[cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_TYPE_TAG]
+            if not cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_TAG in crs_component:
+                str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+                str_error += ("\nIn CRS component: {}\nno: {} in json:\n{}".
+                              format(str(i), cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_TAG, crs_as_dict))
+                return str_error, epsg_code, vertical_epsg_code
+            crs_component_id = crs_component[cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_TAG]
+            if not cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_AUTHORITY_TAG in crs_component_id:
+                str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+                str_error += ("\nIn CRS component: {}\nno {} in {} in json:\n{}".
+                              format(str(i), cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_TAG,
+                                     cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_AUTHORITY_TAG,
+                                     cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_TAG, crs_as_dict))
+                return str_error, epsg_code, vertical_epsg_code
+            crs_component_authority = crs_component_id[cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_AUTHORITY_TAG]
+            if crs_component_authority.casefold() != cd.EPSG_TAG.casefold():
+                str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+                str_error += ("\nIn CRS component: {}\nauthority {} in {} is not {} in json:\n{}".
+                              format(str(i), cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_TAG,
+                                     cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_AUTHORITY_TAG,
+                                     cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_TAG, cd.EPSG_TAG, crs_as_dict))
+                return str_error, epsg_code, vertical_epsg_code
+            if not cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_CODE_TAG in crs_component_id:
+                str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
+                str_error += ("\nIn CRS component: {}\nno {} in {}: {} in json:\n{}".
+                              format(str(i), cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_TAG,
+                                     cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_CODE_TAG,
+                                     cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_TAG, crs_as_dict))
+                return str_error, epsg_code, vertical_epsg_code
+            crs_component_code = crs_component_id[cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_ID_CODE_TAG]
+            if crs_component_type.casefold() == cd.GDAL_CRS_AS_JSON_COMPONENT_CRS_TYPE_VERTICAL.casefold():
+                vertical_epsg_code = crs_component_code
+            else:
+                epsg_code = crs_component_code
+        if epsg_code != cd.NO_EPSG_CODE and vertical_epsg_code != cd.NO_EPSG_CODE:
+            crs_id = ("{}:{}+{}".format(cd.EPSG_TAG, str(epsg_code), str(vertical_epsg_code)))
+        return str_error, crs_id, epsg_code, vertical_epsg_code
 
     def get_compound_epgs_codes_from_wkt(self,
                                          wkt):
