@@ -21,6 +21,35 @@ class Geoid:
         self.crs_tools = CRSsTools()
         self.raster = None
 
+    def deflection(self,
+                   coordinates,
+                   crs_id,
+                   interpolation_method = None):
+        str_error = ''
+        dov_n = None
+        dov_e = None
+        if not self.raster:
+            str_error = ('Geoid is not initialized')
+            return str_error, dov_n, dov_e
+        if not isinstance(coordinates, list):
+            str_error = ('Argument coordinates must be a list and is a: {}'.format(str(type(coordinates))))
+            return str_error, dov_n, dov_e
+        if len(coordinates) < 2:
+            str_error = ('Argument coordinates must be a list with two values at leas')
+            return str_error, dov_n, dov_e
+        if not isinstance(crs_id, str):
+            str_error = ('Argument crs_id must be a string and is a: {}'.format(str(type(crs_id))))
+            return str_error, dov_n, dov_e
+        band_position = 0
+        if not interpolation_method:
+            interpolation_method = cd.GEOID_DEFLECTION_INTERPOLATION_METHOD
+        str_error, du_dr, du_dc = self.raster.interpolate_derivate(coordinates,
+                                                                   crs_id,
+                                                                   band_position,
+                                                                   interpolation_method)
+
+        return str_error, dov_n, dov_e
+
     def set_from_raster_file(self,
                              file_path):
         str_error = ''
