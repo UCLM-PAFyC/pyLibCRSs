@@ -95,6 +95,44 @@ class Geoid:
             cov_dov_n_e = sdev_dov_n * sdev_dov_e
         return str_error, dov_n, dov_e, sdev_dov_n, sdev_dov_e, cov_dov_n_e
 
+    def ondulation(self,
+                   coordinates,
+                   crs_id,
+                   a, e2,
+                   band_position,
+                   geoid_model_accuracy, # None
+                   interpolation_method):
+        str_error = ''
+        ondulation = None
+        sdev_ondulation = None
+        if not self.raster:
+            str_error = ('Geoid is not initialized')
+            return str_error, ondulation, sdev_ondulation
+        if not isinstance(coordinates, list):
+            str_error = ('Argument coordinates must be a list and is a: {}'.format(str(type(coordinates))))
+            return str_error, ondulation, sdev_ondulation
+        if len(coordinates) < 2:
+            str_error = ('Argument coordinates must be a list with two values at leas')
+            return str_error, ondulation, sdev_ondulation
+        if not isinstance(crs_id, str):
+            str_error = ('Argument crs_id must be a string and is a: {}'.format(str(type(crs_id))))
+            return str_error, ondulation, sdev_ondulation
+        # band_position = 0
+        if not interpolation_method:
+            interpolation_method = cd.GEOID_DEFLECTION_INTERPOLATION_METHOD
+        return self.raster.interpolate(coordinates,
+                                       crs_id,
+                                       band_position,
+                                       interpolation_method)
+        # str_error, ondulation = self.raster.interpolate_derivate(coordinates,
+        #                                                          crs_id,
+        #                                                          band_position,
+        #                                                          interpolation_method)
+        # if str_error:
+        #     return str_error, ondulation, sdev_ondulation
+        #
+        # return str_error, ondulation, sdev_ondulation
+
     def set_from_raster_file(self,
                              file_path):
         str_error = ''
