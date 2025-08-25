@@ -120,10 +120,10 @@ class Geoid:
         # band_position = 0
         if not interpolation_method:
             interpolation_method = cd.GEOID_DEFLECTION_INTERPOLATION_METHOD
-        return self.raster.interpolate(coordinates,
-                                       crs_id,
-                                       band_position,
-                                       interpolation_method)
+        str_error, ondulation = self.raster.interpolate(coordinates,
+                                                        crs_id,
+                                                        band_position,
+                                                        interpolation_method)
         # str_error, ondulation = self.raster.interpolate_derivate(coordinates,
         #                                                          crs_id,
         #                                                          band_position,
@@ -131,7 +131,7 @@ class Geoid:
         # if str_error:
         #     return str_error, ondulation, sdev_ondulation
         #
-        # return str_error, ondulation, sdev_ondulation
+        return str_error, ondulation, sdev_ondulation
 
     def set_from_raster_file(self,
                              file_path):
