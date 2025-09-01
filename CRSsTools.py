@@ -181,6 +181,12 @@ class CRSsTools:
 
         return str_error, epsg_code, vertical_epsg_code
 
+    def get_crs_geo2d_for_crs(self, crs_id):
+        base_crs_id = None
+        if crs_id in self.data["base_crs_id_by_crs_id"]:
+            base_crs_id = self.data["base_crs_id_by_crs_id"][crs_id]
+        return base_crs_id
+
     def get_crs_ecef_ids(self):
         return self.data["CRSs_ecef_ids"]
 
