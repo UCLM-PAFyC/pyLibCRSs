@@ -48,7 +48,7 @@ class Geoid:
             return str_error, dov_n, dov_e, sdev_dov_n, sdev_dov_e, cov_dov_n_e
         # band_position = 0
         if not interpolation_method:
-            interpolation_method = cd.GEOID_DEFLECTION_INTERPOLATION_METHOD
+            interpolation_method = cd.GEOID_DEFLECTION_INTERPOLATION_METHOD_DEFAULT
         str_error, du_dr, du_dc = self.raster.interpolate_derivate(coordinates,
                                                                    crs_id,
                                                                    band_position,
@@ -119,7 +119,7 @@ class Geoid:
             return str_error, ondulation, sdev_ondulation
         # band_position = 0
         if not interpolation_method:
-            interpolation_method = cd.GEOID_DEFLECTION_INTERPOLATION_METHOD
+            interpolation_method = cd.GEOID_DEFLECTION_INTERPOLATION_METHOD_DEFAULT
         str_error, ondulation = self.raster.interpolate(coordinates,
                                                         crs_id,
                                                         band_position,

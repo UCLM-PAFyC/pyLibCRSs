@@ -190,6 +190,21 @@ class CRSsTools:
     def get_crs_ecef_ids(self):
         return self.data["CRSs_ecef_ids"]
 
+    def get_crs_from_id(self,
+                        crs_id):
+        str_error = ''
+        if crs_id in self.CRSs:
+            return str_error, self.CRSs[crs_id]
+        try:
+            crs_source = CRS(crs_id).to_3d()
+        except:
+            str_error = CRSsTools.__name__ + "." + self.is_3d.__name__
+            str_error += f'\nFor CRS: {crs_id}'
+            str_error += f"\nError making CRS"
+            return str_error, self.CRSs[crs_id]
+        self.CRSs[crs_id] = crs_source
+        return str_error, self.CRSs[crs_id]
+
     def get_crs_from_wkt(self, wkt):
         str_error = ''
         epsg_code = cd.NO_EPSG_CODE
@@ -247,8 +262,6 @@ class CRSsTools:
             if epsg_code != cd.NO_EPSG_CODE:
                 crs_id = ("{}:{}".format(cd.EPSG_TAG, str(epsg_code)))
         return str_error, crs_id, epsg_code, vertical_epsg_code
-
-
 
     def get_crs_geo2d_ids(self):
         return self.data["CRSs_geo2d_ids"]
