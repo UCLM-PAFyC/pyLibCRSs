@@ -1,6 +1,9 @@
 # authors:
 # David Hernandez Lopez, david.hernandez@uclm.es
 
+CRS_PROJECTED_DEFAULT = "EPSG:25830"
+CRS_VERTICAL_DEFAULT = "EPSG:5782"
+
 NO_EPSG_CODE = -1
 EPSG_TAG = "EPSG"
 ENU_TAG = "ENU"
