@@ -6,7 +6,7 @@ import sys
 import math
 import json
 
-current_path = os.path.dirname(__file__)
+current_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(current_path, '..'))
 
 from .CRSsTools import CRSsTools
