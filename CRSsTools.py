@@ -182,6 +182,10 @@ class CRSsTools:
         return str_error, epsg_code, vertical_epsg_code
 
     def get_crs_geo2d_for_crs(self, crs_id):
+        if '+' in crs_id:
+            str_epsg_codes_compound = crs_id.replace(cd.EPSG_STRING_PREFIX, '')
+            crs_epsg_codes_str = str_epsg_codes_compound.split('+')
+            crs_id = cd.EPSG_STRING_PREFIX + crs_epsg_codes_str[0]
         base_crs_id = None
         if crs_id in self.data["base_crs_id_by_crs_id"]:
             base_crs_id = self.data["base_crs_id_by_crs_id"][crs_id]
