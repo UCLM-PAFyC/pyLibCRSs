@@ -3,17 +3,25 @@
 
 # https://pyproj4.github.io/pyproj/stable/examples.html
 # https://pyproj4.github.io/pyproj/stable/advanced_examples.html
+# https://tessl.io/registry/tessl/pypi-pyproj/3.7.0/files/docs/geodesic.md
 import os
 import json
+import math
 
 from pyproj import CRS, Transformer, database, pyproj
 from pyproj._crs import Datum
+from pyproj import Geod
 from pyproj.enums import TransformDirection
 from pyproj.exceptions import CRSError
 
 from . import CRSsDefines as cd
 import numpy as np
 
+def azimuth_plane(i_e, i_n):
+    az = math.atan2(i_e, i_n)
+    if az < 0:
+        az = az + 2. * math.pi
+    return az
 
 class CRSsTools:
     def __init__(self):
@@ -45,6 +53,65 @@ class CRSsTools:
         self.data["CRSs_vertical_ids_by_base_crs_id"] = {}
         self.data['CRS_info_by_id'] = {}
         self.initialize()
+
+    def arc_to_chord_correction(self,
+                                crs_id_geo2d,
+                                crs_id_projected,
+                                source_point,
+                                target_point): # geodetic_azimuth - projection_azimuth
+        str_error = ''
+        arc_to_chord = 0.
+        str_aux_error, is_source_geographic = self.is_geographic(crs_id_geo2d)
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.arc_to_chord_correction.__name__
+            str_error += ("\nGetting CRS: {} is geographic, error:\n{}".format(crs_id_geo2d, str_aux_error))
+            return str_error, arc_to_chord
+        str_aux_error, is_target_projected = self.is_projected(crs_id_projected)
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.arc_to_chord_correction.__name__
+            str_error += ("\nGetting CRS: {} is projected, error:\n{}".format(crs_id_projected, str_aux_error))
+            return str_error, arc_to_chord
+        crs_source = self.CRSs[crs_id_geo2d]
+        if not is_source_geographic:
+            if not crs_source.geodetic_crs:
+                str_error = CRSsTools.__name__ + "." + self.arc_to_chord_correction.__name__
+                str_error += ("\nCRS: {} must be geographic,".format(crs_id_geo2d))
+                return str_error, arc_to_chord
+        if is_source_geographic:
+            ellipsoid = crs_source.get_geod()
+        else:
+            ellipsoid = crs_source.geodetic_crs.get_geod()
+        lon1 = source_point[0]
+        lat1 = source_point[1]
+        lon2 = target_point[0]
+        lat2 = target_point[1]
+        str_aux_error, azimuth_rad, azimuth_backward_rad, distance = self.geodesic_line_backward(crs_id_geo2d,
+                                                                                                 source_point,
+                                                                                                 target_point)
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.arc_to_chord_correction.__name__
+            str_error += ("\nError computing geodesic line bacward:\n{}".format(str_aux_error))
+            return str_error, arc_to_chord
+        diff_distance = cd.ELLIPSOID_DIFFERENTIAL_DISTANCE
+        str_aux_error, lon1_diff, lat1_diff = self.geodesic_line_forward(crs_id_geo2d, [lon1, lat1],
+                                                                         azimuth_rad, diff_distance)
+        projected_coordinates = [[lon1, lat1, 0.],[lon2, lat2, 0.], [lon1_diff, lat1_diff, 0.]]
+        str_aux_error = self.operation(crs_id_geo2d, crs_id_projected, projected_coordinates)
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.arc_to_chord_correction.__name__
+            str_error += ('\nIn operation from CRS: {} to CRS: {}, error:\n{}'.
+                          format(crs_id_geo2d, crs_id_projected, str_aux_error))
+            return str_error, arc_to_chord
+        x1 = projected_coordinates[0][0]
+        y1 = projected_coordinates[0][1]
+        x2 = projected_coordinates[1][0]
+        y2 = projected_coordinates[1][1]
+        x1_diff = projected_coordinates[2][0]
+        y1_diff = projected_coordinates[2][1]
+        azi_arc = azimuth_plane(x1_diff-x1, y1_diff-y1)
+        azi_chord = azimuth_plane(x2-x1, y2-y1)
+        arc_to_chord = azi_arc - azi_chord
+        return str_error, arc_to_chord
 
     def covariance_matrix_operation(self,
                                     crs_source_id,
@@ -81,6 +148,69 @@ class CRSsTools:
     #     # crs_list = ["EPSG:" + info[1] for info in crs_info_list]
     #     # self.CRSs_compound_ids = sorted(crs_list)
     #     # return self.CRSs_compound_ids
+
+    def geodesic_line_backward(self,
+                               crs_id_geo2d,
+                               source_point,
+                               target_point): # geodetic_azimuth - projection_azimuth
+        str_error = ''
+        azimuth = 0
+        back_azimuth = 0
+        distance = 0
+        str_aux_error, is_geographic = self.is_geographic(crs_id_geo2d)
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.geodesic_line_backward.__name__
+            str_error += ("\nGetting CRS: {} is geographic, error:\n{}".format(crs_id_geo2d, str_aux_error))
+            return str_error, azimuth, back_azimuth, distance
+        crs = self.CRSs[crs_id_geo2d]
+        if not is_geographic:
+            if not crs.geodetic_crs:
+                str_error = CRSsTools.__name__ + "." + self.geodesic_line_backward.__name__
+                str_error += ("\nCRS: {} must be geographic,".format(crs_id_geo2d))
+                return str_error, azimuth, back_azimuth, distance
+        if is_geographic:
+            ellipsoid = crs.get_geod()
+        else:
+            ellipsoid = crs.geodetic_crs.get_geod()
+        lon1 = source_point[0]
+        lat1 = source_point[1]
+        lon2 = target_point[0]
+        lat2 = target_point[1]
+        azimuth, back_azimuth, distance = ellipsoid.inv(lon1, lat1, lon2, lat2, return_back_azimuth=True)
+        azimuth = azimuth * math.pi / 180
+        back_azimuth = back_azimuth * math.pi / 180
+        if azimuth < 0:
+            azimuth = azimuth + 2.0 * math.pi
+        if back_azimuth < 0:
+            back_azimuth = back_azimuth + 2.0 * math.pi
+        return str_error, azimuth, back_azimuth, distance
+
+    def geodesic_line_forward(self,
+                              crs_id_geo2d,
+                              source_point,
+                              azimuth, # radians
+                              distance): # geodetic_azimuth - projection_azimuth
+        str_error = ''
+        str_aux_error, is_geographic = self.is_geographic(crs_id_geo2d)
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.geodesic_line_forward.__name__
+            str_error += ("\nGetting CRS: {} is geographic, error:\n{}".format(crs_id_geo2d, str_aux_error))
+            return str_error, target_point
+        crs = self.CRSs[crs_id_geo2d]
+        if not is_geographic:
+            if not crs.geodetic_crs:
+                str_error = CRSsTools.__name__ + "." + self.geodesic_line_forward.__name__
+                str_error += ("\nCRS: {} must be geographic,".format(crs_id_geo2d))
+                return str_error, target_point
+        if is_geographic:
+            ellipsoid = crs.get_geod()
+        else:
+            ellipsoid = crs.geodetic_crs.get_geod()
+        lon1 = source_point[0]
+        lat1 = source_point[1]
+        azimuth = azimuth * 180. / math.pi
+        lon2, lat2, azimuth_backward = ellipsoid.fwd(lon1, lat1, azimuth, distance)
+        return str_error, lon2, lat2
 
     def get_compound_crs_from_json(self,
                                    crs_as_dict):
