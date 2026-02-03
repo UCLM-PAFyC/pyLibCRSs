@@ -1324,3 +1324,85 @@ class CRSsTools:
                     tc = points[np][2]
                     points[np] = [sc, fc, tc]
         return str_error
+
+    def point_scale_factor_from_ellipsoid_to_projection(self,
+                                                        crs_id_projected,
+                                                        point):
+        str_error = ''
+        scale_factor = 1.
+        str_aux_error, is_target_projected = self.is_projected(crs_id_projected)
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.scale_factor_from_ellipsoid_to_projection.__name__
+            str_error += ("\nGetting CRS: {} is projected, error:\n{}".format(crs_id_projected, str_aux_error))
+            return str_error, arc_to_chord
+        crs_projected = self.CRSs[crs_id_projected]
+        lon = source_point[0]
+        lat = source_point[1]
+        scale_factor = crs_projected.get_factors(lon, lat, False, True)
+        return str_error, scale_factor
+
+    def distance_scale_factor_from_ellipsoid_to_projection(self,
+                                                           crs_id_geo2d,
+                                                           crs_id_projected,
+                                                           source_point,
+                                                           target_point): # geodetic_azimuth - projection_azimuth
+        str_error = ''
+        scale_factor = 0.
+        str_aux_error, is_source_geographic = self.is_geographic(crs_id_geo2d)
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.distance_scale_factor_from_ellipsoid_to_projection.__name__
+            str_error += ("\nGetting CRS: {} is geographic, error:\n{}".format(crs_id_geo2d, str_aux_error))
+            return str_error, scale_factor
+        str_aux_error, is_target_projected = self.is_projected(crs_id_projected)
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.distance_scale_factor_from_ellipsoid_to_projection.__name__
+            str_error += ("\nGetting CRS: {} is projected, error:\n{}".format(crs_id_projected, str_aux_error))
+            return str_error, scale_factor
+        crs_source = self.CRSs[crs_id_geo2d]
+        if not is_source_geographic:
+            if not crs_source.geodetic_crs:
+                str_error = CRSsTools.__name__ + "." + self.distance_scale_factor_from_ellipsoid_to_projection.__name__
+                str_error += ("\nCRS: {} must be geographic,".format(crs_id_geo2d))
+                return str_error, scale_factor
+        if is_source_geographic:
+            ellipsoid = crs_source.get_geod()
+        else:
+            ellipsoid = crs_source.geodetic_crs.get_geod()
+        lon1 = source_point[0]
+        lat1 = source_point[1]
+        lon2 = target_point[0]
+        lat2 = target_point[1]
+        str_aux_error, azimuth_rad, azimuth_backward_rad, distance = self.geodesic_line_backward(crs_id_geo2d,
+                                                                                                 source_point,
+                                                                                                 target_point)
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.distance_scale_factor_from_ellipsoid_to_projection.__name__
+            str_error += ("\nError computing geodesic line bacward:\n{}".format(str_aux_error))
+            return str_error, scale_factor
+        str_aux_error, lonm, latm = self.geodesic_line_forward(crs_id_geo2d, [lon1, lat1],
+                                                               azimuth_rad, distance / 2.)
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.distance_scale_factor_from_ellipsoid_to_projection.__name__
+            str_error += ("\nError computing geodesic line forward:\n{}".format(str_aux_error))
+            return str_error, scale_factor
+        str_aux_error, scale_factor_1 = self.point_scale_factor_from_ellipsoid_to_projection(crs_id_projected,
+                                                                                             [lon1, lat1])
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.distance_scale_factor_from_ellipsoid_to_projection.__name__
+            str_error += ("\nError computing scale factor for first point:\n{}".format(str_aux_error))
+            return str_error, scale_factor
+        str_aux_error, scale_factor_2 = self.point_scale_factor_from_ellipsoid_to_projection(crs_id_projected,
+                                                                                             [lon2, lat2])
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.distance_scale_factor_from_ellipsoid_to_projection.__name__
+            str_error += ("\nError computing scale factor for second point:\n{}".format(str_aux_error))
+            return str_error, scale_factor
+        str_aux_error, scale_factor_m = self.point_scale_factor_from_ellipsoid_to_projection(crs_id_projected,
+                                                                                             [lonm, latm])
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.distance_scale_factor_from_ellipsoid_to_projection.__name__
+            str_error += ("\nError computing scale factor for mean point:\n{}".format(str_aux_error))
+            return str_error, scale_factor
+        scale_factor = 6. / (1. / scale_factor_1 + 4. / scale_factor_m + 1. / scale_factor_2)
+        return str_error, scale_factor
+
