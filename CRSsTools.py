@@ -1325,6 +1325,24 @@ class CRSsTools:
                     points[np] = [sc, fc, tc]
         return str_error
 
+    def point_meridian_convergence_from_ellipsoid_to_projection(self,
+                                                                crs_id_projected,
+                                                                point):
+        str_error = ''
+        meridian_convergence = 1.
+        str_aux_error, is_target_projected = self.is_projected(crs_id_projected)
+        if str_aux_error:
+            str_error = CRSsTools.__name__ + "." + self.point_meridian_convergence_from_ellipsoid_to_projection.__name__
+            str_error += ("\nGetting CRS: {} is projected, error:\n{}".format(crs_id_projected, str_aux_error))
+            return str_error, meridian_convergence
+        crs_projected = self.CRSs[crs_id_projected]
+        p = pyproj.Proj(crs_projected)
+        lon = point[0]
+        lat = point[1]
+        projection_factors = p.get_factors(lon, lat)#, False, True)
+        meridian_convergence = projection_factors.meridian_convergence * math.pi / 180.
+        return str_error, meridian_convergence
+
     def point_scale_factor_from_ellipsoid_to_projection(self,
                                                         crs_id_projected,
                                                         point):
@@ -1332,13 +1350,15 @@ class CRSsTools:
         scale_factor = 1.
         str_aux_error, is_target_projected = self.is_projected(crs_id_projected)
         if str_aux_error:
-            str_error = CRSsTools.__name__ + "." + self.scale_factor_from_ellipsoid_to_projection.__name__
+            str_error = CRSsTools.__name__ + "." + self.point_scale_factor_from_ellipsoid_to_projection.__name__
             str_error += ("\nGetting CRS: {} is projected, error:\n{}".format(crs_id_projected, str_aux_error))
-            return str_error, arc_to_chord
+            return str_error, scale_factor
         crs_projected = self.CRSs[crs_id_projected]
-        lon = source_point[0]
-        lat = source_point[1]
-        scale_factor = crs_projected.get_factors(lon, lat, False, True)
+        p = pyproj.Proj(crs_projected)
+        lon = point[0]
+        lat = point[1]
+        projection_factors = p.get_factors(lon, lat)#, False, True)
+        scale_factor = projection_factors.meridional_scale
         return str_error, scale_factor
 
     def distance_scale_factor_from_ellipsoid_to_projection(self,
@@ -1347,7 +1367,7 @@ class CRSsTools:
                                                            source_point,
                                                            target_point): # geodetic_azimuth - projection_azimuth
         str_error = ''
-        scale_factor = 0.
+        scale_factor = 1.
         str_aux_error, is_source_geographic = self.is_geographic(crs_id_geo2d)
         if str_aux_error:
             str_error = CRSsTools.__name__ + "." + self.distance_scale_factor_from_ellipsoid_to_projection.__name__
