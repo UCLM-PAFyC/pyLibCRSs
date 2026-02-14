@@ -529,7 +529,8 @@ class CRSsTools:
                      crs_source_id,
                      crs_target_id,
                      source_point,
-                     target_point):
+                     target_point,
+                     crs_source_compound_id = None):
         str_error = ""
         jacobian_matrix = None
         if crs_source_id == crs_target_id:
@@ -605,13 +606,17 @@ class CRSsTools:
                 if pos_source_coordinate == 2:
                     increment = increment_lineal_H
             inc_point[0][pos_source_coordinate] = inc_point[0][pos_source_coordinate] + increment
-            str_error = self.operation(crs_source_id, crs_target_id, inc_point)
-            inc_point = inc_point[0]
-            if str_error:
+            str_aux_error = ''
+            if not crs_source_is_only_vertical:
+                str_aux_error = self.operation(crs_source_id, crs_target_id, inc_point)
+            elif crs_source_compound_id is not None:
+                str_aux_error = self.operation(crs_source_compound_id, crs_target_id, inc_point)
+            if str_aux_error:
                 str_error = CRSsTools.__name__ + "." + self.get_jacobian.__name__
                 str_error += ('\nIn operation from CRS: {} to CRS: {}, error:\n{}'.
-                              format(crs_source_id, crs_target_id, str_error))
+                              format(crs_source_id, crs_target_id, str_aux_error))
                 return str_error, jacobian_matrix
+            inc_point = inc_point[0]
             for pos_target_coordinate in range(target_dimension):
                 coordinate_increment = inc_point[pos_target_coordinate] - target_point[pos_target_coordinate]
                 partial = coordinate_increment / increment
