@@ -317,8 +317,12 @@ class CRSsTools:
             crs_epsg_codes_str = str_epsg_codes_compound.split('+')
             crs_id = cd.EPSG_STRING_PREFIX + crs_epsg_codes_str[0]
         base_crs_id = None
-        if crs_id in self.data["base_crs_id_by_crs_id"]:
-            base_crs_id = self.data["base_crs_id_by_crs_id"][crs_id]
+        if cd.ENU_TAG in crs_id:
+            crs_values_str = crs_id.split(';')
+            base_crs_id = crs_values_str[0].replace(cd.ENU_TAG,cd.EPSG_TAG)
+        else:
+            if crs_id in self.data["base_crs_id_by_crs_id"]:
+                base_crs_id = self.data["base_crs_id_by_crs_id"][crs_id]
         return base_crs_id
 
     def get_crs_ecef_ids(self):
