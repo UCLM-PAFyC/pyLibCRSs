@@ -145,3 +145,19 @@ class CompoundProjectedCRSDialog(QDialog):
             self.crs_id += ('+' + str(crs_vertical_epsg_code))
         self.is_accepted = True
         super().accept()
+
+    def update_crs_tree(self, text):
+        if not text:
+            return
+        for i in range(self.crsTreeWidget.topLevelItemCount()):
+            category = self.crsTreeWidget.topLevelItem(i)
+            for j in range(category.childCount()):
+                item = category.child(j)
+                item_text = item.text(0)
+                if item_text == cd.VERTICAL_ELLIPSOID_TAG:
+                    item.setHidden(False)
+                    continue
+                if not text.lower() in item_text.lower():
+                    item.setHidden(True)
+                else:
+                    item.setHidden(False)
