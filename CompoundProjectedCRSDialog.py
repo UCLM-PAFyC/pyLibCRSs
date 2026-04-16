@@ -15,12 +15,12 @@ from . import CRSsDefines as cd
 
 from pyLibQtTools import Tools
 
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.uic import loadUi
-from PyQt5.QtWidgets import (QApplication, QMessageBox, QDialog, QTreeWidgetItem,
+from qgis.PyQt import QtCore, QtWidgets
+from qgis.PyQt.uic import loadUi
+from qgis.PyQt.QtWidgets import (QApplication, QMessageBox, QDialog, QTreeWidgetItem,
                              QFileDialog, QPushButton, QComboBox, QPlainTextEdit, QLineEdit,
                              QDialogButtonBox, QVBoxLayout, QTableWidget, QTableWidgetItem, QInputDialog)
-from PyQt5.QtCore import QDir, QFileInfo, QFile, QSize, Qt, QDate
+from qgis.PyQt.QtCore import QDir, QFileInfo, QFile, QSize, Qt, QDate
 
 class CompoundProjectedCRSDialog(QDialog):
     """Employee dialog."""
