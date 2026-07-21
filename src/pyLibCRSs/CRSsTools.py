@@ -9,12 +9,10 @@ import json
 import math
 
 from pyproj import CRS, Transformer, database, pyproj
-from pyproj._crs import Datum
-from pyproj import Geod
 from pyproj.enums import TransformDirection
 from pyproj.exceptions import CRSError
 
-from . import CRSsDefines as cd
+from src.pyLibCRSs import CRSsDefines as cd
 import numpy as np
 
 def azimuth_plane(i_e, i_n):
