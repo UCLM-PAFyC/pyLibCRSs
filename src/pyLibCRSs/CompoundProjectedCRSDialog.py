@@ -15,7 +15,6 @@ from qgis.PyQt import QtCore
 from qgis.PyQt.uic import loadUi
 from qgis.PyQt.QtWidgets import (QDialog, QTreeWidgetItem)
 
-
 class CompoundProjectedCRSDialog(QDialog):
     """Employee dialog."""
 
