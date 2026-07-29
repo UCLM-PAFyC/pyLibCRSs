@@ -665,7 +665,7 @@ class CRSsTools:
         return str_error, jacobian_matrix
 
     def initialize(self):
-        self.json_data_file = os.path.dirname(__file__) + "\\" + cd.JSON_DATA_FILE_BASE_NAME
+        self.json_data_file = os.path.join(os.path.dirname(__file__), cd.JSON_DATA_FILE_BASE_NAME)
         self.json_data_file += self.proj_version + ".json"
         self.json_data_file = os.path.normcase(self.json_data_file)
         if os.path.exists(self.json_data_file):
