@@ -189,17 +189,19 @@ class CRSsTools:
                               azimuth, # radians
                               distance): # geodetic_azimuth - projection_azimuth
         str_error = ''
+        lon2 = None
+        lat2 = None
         str_aux_error, is_geographic = self.is_geographic(crs_id_geo2d)
         if str_aux_error:
             str_error = CRSsTools.__name__ + "." + self.geodesic_line_forward.__name__
             str_error += ("\nGetting CRS: {} is geographic, error:\n{}".format(crs_id_geo2d, str_aux_error))
-            return str_error, target_point
+            return str_error, lon2, lat2
         crs = self.CRSs[crs_id_geo2d]
         if not is_geographic:
             if not crs.geodetic_crs:
                 str_error = CRSsTools.__name__ + "." + self.geodesic_line_forward.__name__
                 str_error += ("\nCRS: {} must be geographic,".format(crs_id_geo2d))
-                return str_error, target_point
+                return str_error, lon2, lat2
         if is_geographic:
             ellipsoid = crs.get_geod()
         else:
@@ -329,17 +331,18 @@ class CRSsTools:
     def get_crs_from_id(self,
                         crs_id):
         str_error = ''
+        crs = None
         if crs_id in self.CRSs:
             return str_error, self.CRSs[crs_id]
         try:
-            crs_source = CRS(crs_id).to_3d()
+            crs = CRS(crs_id).to_3d()
         except:
             str_error = CRSsTools.__name__ + "." + self.is_3d.__name__
             str_error += f'\nFor CRS: {crs_id}'
             str_error += f"\nError making CRS"
-            return str_error, self.CRSs[crs_id]
-        self.CRSs[crs_id] = crs_source
-        return str_error, self.CRSs[crs_id]
+            return str_error, crs
+        self.CRSs[crs_id] = crs
+        return str_error, crs
 
     def get_crs_from_wkt(self, wkt):
         str_error = ''
