@@ -332,6 +332,10 @@ class CRSsTools:
                         crs_id):
         str_error = ''
         crs = None
+        if not isinstance(crs_id, str):
+            str_error = CRSsTools.__name__ + "." + self.get_crs_from_id.__name__
+            str_error += ("\nArgument must be a string and is: {}".format(str(type(crs_id))))
+            return str_error, self.CRSs[crs_id]
         if crs_id in self.CRSs:
             return str_error, self.CRSs[crs_id]
         try:
@@ -367,7 +371,7 @@ class CRSsTools:
                     return str_error, crs_id, epsg_code, vertical_epsg_code
                 if epsg_code is None:
                     str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
-                    str_error += ("\nEPSG code is None for horizontal CRS in:\n{}".format(str(type(wkt))))
+                    str_error += ("\nEPSG code is None for horizontal CRS in:\n{}".format(wkt))
                     return str_error, crs_id, epsg_code, vertical_epsg_code
             else:
                 try:
@@ -377,7 +381,7 @@ class CRSsTools:
                     return str_error, crs_id, epsg_code, vertical_epsg_code
                 if epsg_code is None:
                     str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
-                    str_error += ("\nEPSG code is None for horizontal CRS in:\n{}".format(str(type(wkt))))
+                    str_error += ("\nEPSG code is None for horizontal CRS in:\n{}".format(wkt))
                     return str_error, crs_id, epsg_code, vertical_epsg_code
             if crs.sub_crs_list[1].is_bound:
                 try:
@@ -387,7 +391,7 @@ class CRSsTools:
                     return str_error, crs_id, epsg_code, vertical_epsg_code
                 if vertical_epsg_code is None:
                     str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
-                    str_error += ("\nEPSG code is None for vertical CRS in:\n{}".format(str(type(wkt))))
+                    str_error += ("\nEPSG code is None for vertical CRS in:\n{}".format(wkt))
                     return str_error, crs_id, epsg_code, vertical_epsg_code
             else:
                 try:
@@ -397,7 +401,7 @@ class CRSsTools:
                     return str_error, crs_id, epsg_code, vertical_epsg_code
                 if vertical_epsg_code is None:
                     str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
-                    str_error += ("\nEPSG code is None for vertical CRS in:\n{}".format(str(type(wkt))))
+                    str_error += ("\nEPSG code is None for vertical CRS in:\n{}".format(wkt))
                     return str_error, crs_id, epsg_code, vertical_epsg_code
             if epsg_code != cd.NO_EPSG_CODE and vertical_epsg_code != cd.NO_EPSG_CODE:
                 crs_id = ("{}:{}+{}".format(cd.EPSG_TAG, str(epsg_code), str(vertical_epsg_code)))
@@ -410,7 +414,7 @@ class CRSsTools:
                     return str_error, crs_id, epsg_code, vertical_epsg_code
                 if epsg_code is None:
                     str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
-                    str_error += ("\nEPSG code is None for CRS in:\n{}".format(str(type(wkt))))
+                    str_error += ("\nEPSG code is None for CRS in:\n{}".format(wkt))
                     return str_error, crs_id, epsg_code, vertical_epsg_code
             else:
                 try:
@@ -420,7 +424,7 @@ class CRSsTools:
                     return str_error, crs_id, epsg_code, vertical_epsg_code
                 if epsg_code is None:
                     str_error = CRSsTools.__name__ + "." + self.get_compound_epgs_codes_from_wkt.__name__
-                    str_error += ("\nEPSG code is None for CRS in:\n{}".format(str(type(wkt))))
+                    str_error += ("\nEPSG code is None for CRS in:\n{}".format(wkt))
                     return str_error, crs_id, epsg_code, vertical_epsg_code
             if epsg_code != cd.NO_EPSG_CODE:
                 crs_id = ("{}:{}".format(cd.EPSG_TAG, str(epsg_code)))
@@ -443,6 +447,87 @@ class CRSsTools:
                 return self.data["CRSs_ecef_ids_by_base_crs_id"][base_crs_id]
         # return self.data["CRSs_ecef_ids"]
         return None
+
+    def get_crs_epsg_codes_from_id(self, crs_id):
+        str_error = ''
+        epsg_code = cd.NO_EPSG_CODE
+        vertical_epsg_code = cd.NO_EPSG_CODE
+        if not isinstance(crs_id, str):
+            str_error = CRSsTools.__name__ + "." + self.get_crs_epsg_codes_from_id.__name__
+            str_error += ("\nArgument must be a string and is: {}".format(str(type(crs_id))))
+            return str_error, epsg_code, vertical_epsg_code
+        str_aux_error, crs = self.get_crs_from_id(crs_id)
+        if str_error:
+            str_error = CRSsTools.__name__ + "." + self.get_crs_epsg_codes_from_id.__name__
+            str_error += ("\nMaking CRS from id:\n{}\nError:\n{}".format(crs_id, str_aux_error))
+            return str_error, epsg_code, vertical_epsg_code
+        if crs.is_compound:
+            if crs.sub_crs_list[0].is_bound:
+                try:
+                    epsg_code = crs.sub_crs_list[0].source_crs.to_epsg()
+                except CRSError as e:
+                    str_error = str(e)
+                    return str_error, epsg_code, vertical_epsg_code
+                if epsg_code is None:
+                    str_error = CRSsTools.__name__ + "." + self.get_crs_epsg_codes_from_id.__name__
+                    str_error += ("\nEPSG code is None for horizontal CRS in:\n{}".format(crs_id))
+                    return str_error, epsg_code, vertical_epsg_code
+            else:
+                try:
+                    epsg_code = crs.sub_crs_list[0].to_epsg()
+                except CRSError as e:
+                    str_error = str(e)
+                    return str_error, epsg_code, vertical_epsg_code
+                if epsg_code is None:
+                    str_error = CRSsTools.__name__ + "." + self.get_crs_epsg_codes_from_id.__name__
+                    str_error += ("\nEPSG code is None for horizontal CRS in:\n{}".format(crs_id))
+                    return str_error, epsg_code, vertical_epsg_code
+            if crs.sub_crs_list[1].is_bound:
+                try:
+                    vertical_epsg_code = crs.sub_crs_list[1].source_crs.to_epsg()
+                except CRSError as e:
+                    str_error = str(e)
+                    return str_error, epsg_code, vertical_epsg_code
+                if vertical_epsg_code is None:
+                    str_error = CRSsTools.__name__ + "." + self.get_crs_epsg_codes_from_id.__name__
+                    str_error += ("\nEPSG code is None for vertical CRS in:\n{}".format(crs_id))
+                    return str_error, epsg_code, vertical_epsg_code
+            else:
+                try:
+                    vertical_epsg_code = crs.sub_crs_list[1].to_epsg()
+                except CRSError as e:
+                    str_error = str(e)
+                    return str_error, epsg_code, vertical_epsg_code
+                if vertical_epsg_code is None:
+                    str_error = CRSsTools.__name__ + "." + self.get_crs_epsg_codes_from_id.__name__
+                    str_error += ("\nEPSG code is None for vertical CRS in:\n{}".format(crs_id))
+                    return str_error, epsg_code, vertical_epsg_code
+            if epsg_code != cd.NO_EPSG_CODE and vertical_epsg_code != cd.NO_EPSG_CODE:
+                crs_id = ("{}:{}+{}".format(cd.EPSG_TAG, str(epsg_code), str(vertical_epsg_code)))
+        else:
+            if crs.is_bound:
+                try:
+                    epsg_code = crs.source_crs.to_epsg()
+                except CRSError as e:
+                    str_error = str(e)
+                    return str_error, epsg_code, vertical_epsg_code
+                if epsg_code is None:
+                    str_error = CRSsTools.__name__ + "." + self.get_crs_epsg_codes_from_id.__name__
+                    str_error += ("\nEPSG code is None for CRS in:\n{}".format(crs_id))
+                    return str_error, epsg_code, vertical_epsg_code
+            else:
+                try:
+                    epsg_code = crs.to_epsg()
+                except CRSError as e:
+                    str_error = str(e)
+                    return str_error, epsg_code, vertical_epsg_code
+                if epsg_code is None:
+                    str_error = CRSsTools.__name__ + "." + self.get_crs_epsg_codes_from_id.__name__
+                    str_error += ("\nEPSG code is None for CRS in:\n{}".format(crs_id))
+                    return str_error, epsg_code, vertical_epsg_code
+            if epsg_code != cd.NO_EPSG_CODE:
+                crs_id = ("{}:{}".format(cd.EPSG_TAG, str(epsg_code)))
+        return str_error, epsg_code, vertical_epsg_code
 
     def get_crs_geo3d_ids_for_crs_geo2d_id(self,
                                            crs_geo2d_id):
